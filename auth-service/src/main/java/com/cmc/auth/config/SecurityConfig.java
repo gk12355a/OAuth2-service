@@ -23,15 +23,17 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().authenticated()
-            )
-            // Form Login cho User đăng nhập
-            .formLogin(Customizer.withDefaults());
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF để test Postman dễ dàng
+                .authorizeHttpRequests(authorize -> authorize
+
+                        .requestMatchers("/auth/register").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
 
         return http.build();
     }
