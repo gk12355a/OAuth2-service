@@ -8,7 +8,6 @@ import com.cmc.auth.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import com.cmc.auth.config.RabbitMQConfig;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
