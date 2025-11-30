@@ -54,7 +54,7 @@ public class AuthorizationServerConfig {
         this.userRepository = userRepository;
     }
 
-    // CORS Filter với độ ưu tiên cao nhất để tránh lỗi OPTIONS 403/302
+    // CORS Filter
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -70,7 +70,7 @@ public class AuthorizationServerConfig {
         return bean;
     }
 
-    // Tùy chỉnh JWT: thêm claim "auth_id" vào Access Token
+    // Tùy chỉnh JWT
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return (context) -> {
@@ -103,6 +103,7 @@ public class AuthorizationServerConfig {
         return http.build();
     }
 
+    // [THAY ĐỔI Ở ĐÂY]
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
         RegisteredClient frontendClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -111,8 +112,15 @@ public class AuthorizationServerConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                
+                // Các URL Login thành công
                 .redirectUri(frontendRedirectUri)
                 .redirectUri(postmanRedirectUri)
+                
+                //  [MỚI] Các URL Logout thành công được phép (Whitelist)
+                .postLogoutRedirectUri("http://localhost:5173/login") // Trang login của React
+                .postLogoutRedirectUri("http://localhost:5173")       // Trang chủ của React (dự phòng)
+                
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("meeting:read")
