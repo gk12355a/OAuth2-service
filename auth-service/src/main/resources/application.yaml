@@ -27,3 +27,7 @@ auth:
 app:
   frontend:
     redirect-uri: ${FRONTEND_REDIRECT_URI}
+  oauth2:
+    client-id: ${OAUTH_CLIENT_ID}
+    client-secret: ${OAUTH_CLIENT_SECRET}
+    postman-redirect: ${OAUTH_POSTMAN_REDIRECT}

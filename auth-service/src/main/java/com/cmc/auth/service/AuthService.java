@@ -8,6 +8,7 @@ import com.cmc.auth.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,23 +27,19 @@ public class AuthService {
     }
 
     public String register(RegisterRequest request) {
-        // 1. Kiểm tra trùng username
+        // Kiểm tra username đã tồn tại chưa
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username đã tồn tại!");
         }
 
-        // 2. Mã hóa mật khẩu
-        // Vì dùng DelegatingPasswordEncoder, ta nên để prefix {bcrypt} cho rõ ràng
-        // (Mặc dù default đã set là bcrypt, nhưng thêm vào cho chuẩn format mới)
-        String rawPassword = request.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword); 
-        // Lưu ý: encoder.encode() của Delegating đã tự thêm prefix {bcrypt} rồi.
+        // Mã hóa mật khẩu
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 3. Set quyền mặc định (USER)
+        // Gán vai trò mặc định
         Set<Role> roles = new HashSet<>();
         roles.add(Role.ROLE_USER);
 
-        // 4. Tạo User
+        // Tạo user mới
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setPassword(encodedPassword);
@@ -50,16 +47,20 @@ public class AuthService {
         newUser.setRoles(roles);
         newUser.setActive(true);
 
+        // Lưu trước để sinh ID (rất quan trọng)
         userRepository.save(newUser);
+
+        // Gửi thông tin đồng bộ bao gồm auth_id qua RabbitMQ
         Map<String, Object> userSyncData = Map.of(
+            "auth_id", newUser.getId(),           // ID từ Auth Service - dùng để đồng bộ
             "username", newUser.getUsername(),
             "fullName", newUser.getFullName(),
-            "email", newUser.getUsername() // Giả sử username là email
+            "email", newUser.getUsername()        // Giả sử username là email
         );
 
         rabbitTemplate.convertAndSend(
-            RabbitMQConfig.EXCHANGE_NAME, 
-            RabbitMQConfig.ROUTING_KEY, 
+            RabbitMQConfig.EXCHANGE_NAME,
+            RabbitMQConfig.ROUTING_KEY,
             userSyncData
         );
 

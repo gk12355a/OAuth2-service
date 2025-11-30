@@ -3,6 +3,7 @@ package com.cmc.auth.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod; // Import mới
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,12 +24,15 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Tắt CSRF để test Postman dễ dàng
-                .authorizeHttpRequests(authorize -> authorize
-
-                        .requestMatchers("/auth/register").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
+            // [QUAN TRỌNG] Cho phép OPTIONS requests đi qua
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Thêm dòng này
+                .requestMatchers("/auth/**", "/login", "/error", "/.well-known/**").permitAll() 
+                .anyRequest().authenticated()
+            )
+            // Tắt CSRF nếu cần thiết (vì đây là API)
+            .csrf(csrf -> csrf.disable())
+            .formLogin(Customizer.withDefaults());
 
         return http.build();
     }
