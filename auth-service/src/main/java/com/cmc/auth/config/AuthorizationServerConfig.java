@@ -125,7 +125,7 @@ public class AuthorizationServerConfig {
                 .scope(OidcScopes.PROFILE)
                 .scope("meeting:read")
                 .scope("meeting:write")
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
                 .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(30)).build())
                 .build();
 

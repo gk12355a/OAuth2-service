@@ -31,3 +31,4 @@ app:
     client-id: ${OAUTH_CLIENT_ID}
     client-secret: ${OAUTH_CLIENT_SECRET}
     postman-redirect: ${OAUTH_POSTMAN_REDIRECT}
+

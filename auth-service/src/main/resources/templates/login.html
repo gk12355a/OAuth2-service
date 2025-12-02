@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - CMC Meeting SSO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom animation giống Framer Motion */
+        .fade-in-up {
+            animation: fadeInUp 1s ease-out forwards;
+        }
+        .scale-in {
+            animation: scaleIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 overflow-hidden">
+
+    <div class="hidden md:flex w-1/2 items-center justify-center p-10 fade-in-up">
+        <img src="https://cdn.dribbble.com/users/1162077/screenshots/3848914/programmer.gif" 
+             alt="Meeting illustration" 
+             class="w-3/4 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+    </div>
+
+    <div class="flex w-full md:w-1/2 items-center justify-center p-6">
+        <div class="bg-white shadow-2xl p-10 rounded-3xl w-full max-w-md border border-blue-100 scale-in relative">
+            
+            <h2 class="text-3xl font-bold text-center mb-8 text-blue-700 flex items-center justify-center gap-2">
+                <span>🗓️</span> Meeting SSO
+            </h2>
+
+            <div th:if="${param.error}" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm flex items-center gap-2 animate-pulse">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Sai tên đăng nhập hoặc mật khẩu!</span>
+            </div>
+
+            <div th:if="${param.logout}" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm flex items-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span>Bạn đã đăng xuất thành công.</span>
+            </div>
+
+            <form th:action="@{/login}" method="post" class="space-y-4">
+                
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <div class="relative">
+                        <input type="text" id="username" name="username" 
+                               placeholder="Nhập email..." 
+                               required autofocus
+                               class="w-full border border-blue-300 p-3 rounded-xl bg-white placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition pl-10">
+                        <i class="fas fa-user absolute left-3 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" 
+                               placeholder="Nhập mật khẩu..." 
+                               required
+                               class="w-full border border-blue-300 p-3 rounded-xl bg-white placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition pl-10 pr-10">
+                        <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
+                        
+                        <button type="button" onclick="togglePassword()" 
+                                class="absolute right-3 top-3 text-gray-500 hover:text-blue-600 focus:outline-none">
+                            <i id="eyeIcon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white font-semibold py-3 mt-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 transform active:scale-95 duration-150">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Đăng nhập SSO
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <div class="relative mb-4">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">Hệ thống xác thực tập trung</span>
+                    </div>
+                </div>
+                
+                <p class="text-sm text-gray-500">
+                    © 2025 CMC Global
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
