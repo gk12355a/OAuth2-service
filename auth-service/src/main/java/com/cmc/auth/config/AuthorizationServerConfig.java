@@ -54,7 +54,6 @@ public class AuthorizationServerConfig {
         this.userRepository = userRepository;
     }
 
-    // CORS Filter
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -70,7 +69,6 @@ public class AuthorizationServerConfig {
         return bean;
     }
 
-    // Tùy chỉnh JWT
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return (context) -> {
@@ -91,7 +89,10 @@ public class AuthorizationServerConfig {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(Customizer.withDefaults());
+                .oidc(oidc -> oidc
+                    // [BỔ SUNG] Bật tính năng Logout Endpoint (/connect/logout)
+                    .logoutEndpoint(Customizer.withDefaults()) 
+                );
 
         http.csrf(csrf -> csrf.disable());
 
@@ -103,7 +104,6 @@ public class AuthorizationServerConfig {
         return http.build();
     }
 
-    // [THAY ĐỔI Ở ĐÂY]
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
         RegisteredClient frontendClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -113,13 +113,13 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 
-                // Các URL Login thành công
+                // Login Redirect
                 .redirectUri(frontendRedirectUri)
                 .redirectUri(postmanRedirectUri)
                 
-                //  [MỚI] Các URL Logout thành công được phép (Whitelist)
-                .postLogoutRedirectUri("http://localhost:5173/login") // Trang login của React
-                .postLogoutRedirectUri("http://localhost:5173")       // Trang chủ của React (dự phòng)
+                // [BỔ SUNG QUAN TRỌNG] Whitelist URL cho phép quay về sau khi Logout
+                .postLogoutRedirectUri("http://localhost:5173/login") 
+                .postLogoutRedirectUri("http://localhost:5173")
                 
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
