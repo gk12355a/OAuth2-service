@@ -41,12 +41,23 @@ public class AuthorizationServerConfig {
 
     @Value("${app.frontend.redirect-uri}")
     private String frontendRedirectUri;
+    
     @Value("${app.oauth2.client-id}")
     private String clientId;
+    
     @Value("${app.oauth2.client-secret}")
     private String clientSecret;
+    
     @Value("${app.oauth2.postman-redirect}")
     private String postmanRedirectUri;
+
+    // Inject danh sách CORS origins từ config
+    @Value("${app.cors.allowed-origins}")
+    private List<String> corsAllowedOrigins;
+
+    // Inject danh sách Post Logout URIs từ config
+    @Value("${app.oauth2.post-logout-uris}")
+    private List<String> postLogoutRedirectUris;
 
     private final UserRepository userRepository;
 
@@ -59,7 +70,10 @@ public class AuthorizationServerConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        
+        // Sử dụng List từ config thay vì hardcode
+        config.setAllowedOrigins(corsAllowedOrigins);
+        
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
@@ -90,7 +104,6 @@ public class AuthorizationServerConfig {
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(oidc -> oidc
-                    // [BỔ SUNG] Bật tính năng Logout Endpoint (/connect/logout)
                     .logoutEndpoint(Customizer.withDefaults()) 
                 );
 
@@ -106,7 +119,7 @@ public class AuthorizationServerConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient frontendClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.Builder clientBuilder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
                 .clientSecret("{noop}" + clientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
@@ -117,19 +130,19 @@ public class AuthorizationServerConfig {
                 .redirectUri(frontendRedirectUri)
                 .redirectUri(postmanRedirectUri)
                 
-                // [BỔ SUNG QUAN TRỌNG] Whitelist URL cho phép quay về sau khi Logout
-                .postLogoutRedirectUri("http://localhost:5173/login") 
-                .postLogoutRedirectUri("http://localhost:5173")
-                
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("meeting:read")
                 .scope("meeting:write")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(30)).build())
-                .build();
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(30)).build());
 
-        return new InMemoryRegisteredClientRepository(frontendClient);
+        // Thêm danh sách Post Logout Redirect URIs từ cấu hình
+        if (postLogoutRedirectUris != null) {
+            postLogoutRedirectUris.forEach(clientBuilder::postLogoutRedirectUri);
+        }
+
+        return new InMemoryRegisteredClientRepository(clientBuilder.build());
     }
 
     @Bean

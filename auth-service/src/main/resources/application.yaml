@@ -26,9 +26,17 @@ auth:
 
 app:
   frontend:
-    redirect-uri: ${FRONTEND_REDIRECT_URI}
+    base-url: ${FRONTEND_BASE_URL}       # Ví dụ: http://localhost:5173
+    redirect-uri: ${FRONTEND_REDIRECT_URI} # Callback login
+  
   oauth2:
     client-id: ${OAUTH_CLIENT_ID}
     client-secret: ${OAUTH_CLIENT_SECRET}
     postman-redirect: ${OAUTH_POSTMAN_REDIRECT}
+    # Danh sách các URL được phép quay về sau khi logout (phân cách bằng dấu phẩy nếu chạy docker/env)
+    post-logout-uris: ${OAUTH_POST_LOGOUT_URIS} 
+  
+  cors:
+    # Danh sách các domain được phép gọi API (CORS)
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 

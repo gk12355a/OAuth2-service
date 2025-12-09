@@ -1,6 +1,7 @@
 package com.cmc.auth.config;
 
 import jakarta.servlet.http.Cookie;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -16,6 +17,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    // Inject Base URL của Frontend từ file config
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,11 +42,11 @@ public class SecurityConfig {
                         .failureHandler(authenticationFailureHandler()) 
                         .permitAll())
                 
-                // [BỔ SUNG] Cấu hình Logout tiêu chuẩn Spring Security
-                // Hỗ trợ cả logout thường và logout từ OIDC flow
+                // Cấu hình Logout tiêu chuẩn Spring Security
                 .logout(logout -> logout
                     .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-                    .logoutSuccessUrl("http://localhost:5173/login?logout=true")
+                    // SỬ DỤNG BIẾN CẤU HÌNH, KHÔNG HARDCODE
+                    .logoutSuccessUrl(frontendBaseUrl + "/login?logout=true")
                     .invalidateHttpSession(true)
                     .clearAuthentication(true)
                     .deleteCookies("JSESSIONID")
