@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: oauth
-          image: gk123a/oauth:v1  # Image của bạn
+          image: gk123a/auth:v2 # Image của bạn
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
