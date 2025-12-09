@@ -32,7 +32,7 @@ spec:
           # Cấu hình JDBC (Ghép từ các biến lẻ thành chuỗi kết nối)
           env:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(AUTH_DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 configMapKeyRef:
