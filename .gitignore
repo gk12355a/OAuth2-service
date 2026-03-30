@@ -34,3 +34,4 @@ build/
 .env
 target/
 .vscode/
+01-oauth-config-secret.yaml
