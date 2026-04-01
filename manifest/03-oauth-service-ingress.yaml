@@ -21,7 +21,7 @@ metadata:
   name: oauth-ingress
   namespace: meeting-system
 spec:
-  ingressClassName: nginx
+  ingressClassName: haproxy
   rules:
     - host: oauth-meeting.co
       http:
