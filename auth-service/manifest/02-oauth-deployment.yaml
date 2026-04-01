@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: oauth-service
-          image: gk123a/meeting-oauth2-service:v1.0.1-prod
+          image: gk123a/meeting-oauth2-service:v2.0.3-dev
           command: ["/bin/sh", "-c"]
           args:
             - |
