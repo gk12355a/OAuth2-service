@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth-deployment
+  namespace: meeting-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth-service
+  template:
+    metadata:
+      labels:
+        app: oauth-service
+    spec:
+      containers:
+        - name: oauth-service
+          image: gk123a/meeting-oauth2-service:v1.0.1-prod
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              touch .env && 
+              java -jar app.jar
+          ports:
+            - containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: oauth-config
+            - secretRef:
+                name: oauth-secret
+          env:
+            # Map thủ công các biến nếu ứng dụng yêu cầu tên cụ thể khác với Key
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: DB_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: DB_PASSWORD
