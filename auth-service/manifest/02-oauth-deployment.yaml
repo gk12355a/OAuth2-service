@@ -29,16 +29,12 @@ spec:
             - secretRef:
                 name: oauth-secret
           env:
-            # Map thủ công các biến nếu ứng dụng yêu cầu tên cụ thể khác với Key
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true"
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: oauth-secret
-                  key: DB_USER
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: oauth-secret
-                  key: DB_PASSWORD
+              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
