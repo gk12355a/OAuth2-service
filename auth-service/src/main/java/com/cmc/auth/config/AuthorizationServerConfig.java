@@ -1,6 +1,7 @@
 package com.cmc.auth.config;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +49,14 @@ public class AuthorizationServerConfig {
     @Value("${app.oauth2.postman-redirect}")
     private String postmanRedirectUri;
 
+    // [THÊM MỚI] Đọc biến môi trường từ Kubernetes, mặc định là localhost nếu chạy
+    // dev
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}")
+    private String corsAllowedOrigins;
+
+    @Value("${OAUTH_POST_LOGOUT_URIS:http://localhost:5173/login,http://localhost:5173}")
+    private String postLogoutUris;
+
     private final UserRepository userRepository;
 
     public AuthorizationServerConfig(UserRepository userRepository) {
@@ -59,7 +68,10 @@ public class AuthorizationServerConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+
+        // [ĐÃ SỬA] Đọc danh sách CORS động
+        config.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
@@ -90,46 +102,43 @@ public class AuthorizationServerConfig {
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(oidc -> oidc
-                    // [BỔ SUNG] Bật tính năng Logout Endpoint (/connect/logout)
-                    .logoutEndpoint(Customizer.withDefaults()) 
-                );
+                        .logoutEndpoint(Customizer.withDefaults()));
 
         http.csrf(csrf -> csrf.disable());
 
         http.exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
                 new LoginUrlAuthenticationEntryPoint("/login"),
                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
         return http.build();
     }
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient frontendClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        var builder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(clientId)
                 .clientSecret("{noop}" + clientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                
-                // Login Redirect
                 .redirectUri(frontendRedirectUri)
                 .redirectUri(postmanRedirectUri)
-                
-                // [BỔ SUNG QUAN TRỌNG] Whitelist URL cho phép quay về sau khi Logout
-                .postLogoutRedirectUri("http://localhost:5173/login") 
-                .postLogoutRedirectUri("http://localhost:5173")
-                
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("meeting:read")
                 .scope("meeting:write")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
-                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(30)).build())
-                .build();
+                .tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(30)).build());
 
-        return new InMemoryRegisteredClientRepository(frontendClient);
+        // [ĐÃ SỬA] Đọc động danh sách URL cho phép Logout từ cấu hình
+        if (postLogoutUris != null && !postLogoutUris.isEmpty()) {
+            for (String uri : postLogoutUris.split(",")) {
+                builder.postLogoutRedirectUri(uri.trim());
+            }
+        }
+
+        return new InMemoryRegisteredClientRepository(builder.build());
     }
 
     @Bean

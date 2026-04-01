@@ -1,6 +1,7 @@
 package com.cmc.auth.config;
 
 import jakarta.servlet.http.Cookie;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,6 +18,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // [THÊM MỚI] Lấy động URL của Frontend từ biến môi trường (ConfigMap trên K8s)
+    @Value("${FRONTEND_BASE_URL:http://localhost:5173}")
+    private String frontendBaseUrl;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -28,26 +33,28 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/**", "/login", "/error", "/.well-known/**", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/auth/**", "/login", "/error", "/.well-known/**", "/css/**", "/js/**",
+                                "/images/**")
+                        .permitAll()
                         .anyRequest().authenticated())
-                
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .failureHandler(authenticationFailureHandler()) 
+                        .failureHandler(authenticationFailureHandler())
                         .permitAll())
-                
-                // [BỔ SUNG] Cấu hình Logout tiêu chuẩn Spring Security
+
+                // Cấu hình Logout tiêu chuẩn Spring Security
                 // Hỗ trợ cả logout thường và logout từ OIDC flow
                 .logout(logout -> logout
-                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-                    .logoutSuccessUrl("http://localhost:5173/login?logout=true")
-                    .invalidateHttpSession(true)
-                    .clearAuthentication(true)
-                    .deleteCookies("JSESSIONID")
-                    .permitAll()
-                )
-                
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+                        // [ĐÃ SỬA] Đổi từ localhost cứng sang sử dụng biến môi trường frontendBaseUrl
+                        .logoutSuccessUrl(frontendBaseUrl + "/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll())
+
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
