@@ -21,7 +21,7 @@ pipeline {
         
         // --- ĐƯỜNG DẪN ---
         PROJECT_ROOT = "auth-service" 
-        YAML_DIR = "manifest"    
+        YAML_DIR = "auth-service/manifest"    
     }
 
     stages {
