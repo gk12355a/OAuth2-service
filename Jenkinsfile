@@ -8,7 +8,7 @@ pipeline {
     environment {
         // --- CẤU HÌNH DOCKER ---
         DOCKER_REGISTRY_USER = "gk123a"
-        IMAGE_NAME = "oauth2-server"
+        IMAGE_NAME = "meeting-oauth2-service"
         DOCKER_CREDENTIALS_ID = "docker-hub-credentials"
        
         // --- CẤU HÌNH GIT ---
