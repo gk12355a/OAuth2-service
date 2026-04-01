@@ -91,6 +91,11 @@ pipeline {
 
                         if ! git diff --cached --quiet; then
                             git commit -m "GitOps: Update $IMAGE_NAME image to $NEW_TAG [ci skip]"
+                            
+                            # Clean up any other unstaged changes (e.g. scripts, logs) before pulling
+                            git reset --hard HEAD
+                            git clean -fd
+                            
                             git pull origin $BRANCH --rebase
                             git push https://$GIT_USER:$GIT_PASS@$CLEAN_URL $BRANCH
                         else
