@@ -29,8 +29,24 @@ spec:
             - secretRef:
                 name: oauth-secret
           env:
+            # SỬA Ở DÒNG NÀY:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+              value: "jdbc:mysql://$(DB_HOST):$(DB_PORT)/$(AUTH_DB_NAME)?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+            
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: DB_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: DB_PASSWORD
+                  
+            # Tiện tay thêm dòng này để chặn trước lỗi mất Cookie khi chạy qua Nginx HTTPS
+            - name: SERVER_FORWARD_HEADERS_STRATEGY
+              value: "framework"
           resources:
             requests:
               cpu: "250m"
